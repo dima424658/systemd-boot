@@ -1,5 +1,5 @@
 project('systemd-boot-efi', 'c',
-        version : '255',
+        version : '256',
         license : 'GPLv2',
         default_options: [
                 'c_std=gnu11',
@@ -8,9 +8,16 @@ project('systemd-boot-efi', 'c',
         meson_version : '>= 0.60.0',
        )
 
+project_major_version = meson.project_version().split('.')[0].split('~')[0]
+if meson.project_version().contains('.')
+        project_minor_version = meson.project_version().split('.')[-1].split('~')[0]
+else
+        project_minor_version = '0'
+endif
+
 conf = configuration_data()
 conf.set_quoted('PROJECT_URL', 'https://systemd.io/')
-conf.set('PROJECT_VERSION', meson.project_version(),
+conf.set('PROJECT_VERSION', project_major_version,
          description : 'Numerical project version (used where a simple number is expected)')
 
 # Our own paths
@@ -52,7 +59,12 @@ endif
 
 ############################################################
 
+check_efi_alignment_py = find_program('tools/check-efi-alignment.py')
 elf2efi_py = find_program('tools/elf2efi.py')
+
+version_tag = meson.project_version()
+
+conf.set_quoted('VERSION_TAG', version_tag)
 
 version_h = configure_file(
         input : 'version.h.in',

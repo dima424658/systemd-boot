@@ -372,9 +372,9 @@ bool efi_fnmatch(const char16_t *pattern, const char16_t *haystack) {
                                                                            \
                 uint64_t u = 0;                                            \
                 while (*s >= '0' && *s <= '9') {                           \
-                        if (__builtin_mul_overflow(u, 10, &u))             \
+                        if (!MUL_ASSIGN_SAFE(&u, 10))                      \
                                 return false;                              \
-                        if (__builtin_add_overflow(u, *s - '0', &u))       \
+                        if (!INC_SAFE(&u, *s - '0'))                       \
                                 return false;                              \
                         s++;                                               \
                 }                                                          \
@@ -481,7 +481,7 @@ char *line_get_key_value(char *s, const char *sep, size_t *pos, char **ret_key, 
 }
 
 char16_t *hexdump(const void *data, size_t size) {
-        static const char hex[16] = "0123456789abcdef";
+        static const char hex[] = "0123456789abcdef";
         const uint8_t *d = data;
 
         assert(data || size == 0);
@@ -593,13 +593,13 @@ typedef struct {
 static void grow_buf(FormatContext *ctx, size_t need) {
         assert(ctx);
 
-        assert_se(!__builtin_add_overflow(ctx->n, need, &need));
+        assert_se(INC_SAFE(&need, ctx->n));
 
         if (need < ctx->n_buf)
                 return;
 
         /* Greedily allocate if we can. */
-        if (__builtin_mul_overflow(need, 2, &ctx->n_buf))
+        if (!MUL_SAFE(&ctx->n_buf, need, 2))
                 ctx->n_buf = need;
 
         /* We cannot use realloc here as ctx->buf may be ctx->stack_buf, which we cannot free. */

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-set -xe
+set -e
 
 if [[ $# -lt 2 ]]; then
     echo "Usage: ${0} TARGET INPUT [GDBSCRIPT]"
